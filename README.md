@@ -21,5 +21,15 @@ This project demonstrates hands-on cybersecurity skills using an isolated Virtua
 5. Vulnerability Scanning
 6. System Hardening
 
+## 🧪 Live Attack / Defend Lab (Docker)
+
+A self-contained, one-command Docker lab: attack a vulnerable web app (DVWA)
+from a preloaded attacker box and watch a SIEM-style detector catch you in real
+time, then tune the detection rules. See [`labs/live-lab/`](labs/live-lab/).
+
+```bash
+cd labs/live-lab && docker compose up -d --build
+```
+
 ## Author
 Joz Peters
