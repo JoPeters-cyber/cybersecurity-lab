@@ -1,0 +1,51 @@
+# Self-contained attack/defend practice lab
+#   target  : DVWA (Damn Vulnerable Web Application)
+#   proxy   : nginx reverse proxy -> single, SIEM-style access log we can detect on
+#   attacker : debian box preloaded with nmap, hydra, sqlmap, curl
+#   detector : python log-watcher that tails the proxy log and raises alerts
+#
+# Bring it up with:  docker compose up -d --build
+# Web UI:            http://localhost:8080   (login admin / password, then "Create / Reset Database")
+# Watch detections:  docker compose logs -f detector
+services:
+  dvwa:
+    image: vulnerables/web-dvwa:latest
+    container_name: lab-dvwa
+    networks: [labnet]
+    restart: unless-stopped
+
+  proxy:
+    image: nginx:1.27-alpine
+    container_name: lab-proxy
+    depends_on: [dvwa]
+    ports:
+      - "8080:80"
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - logs:/logs
+    networks: [labnet]
+    restart: unless-stopped
+
+  attacker:
+    build: ./attacker
+    container_name: lab-attacker
+    depends_on: [proxy]
+    # keep it alive so you can `docker compose exec attacker bash`
+    command: ["sleep", "infinity"]
+    networks: [labnet]
+
+  detector:
+    build: ./detector
+    container_name: lab-detector
+    depends_on: [proxy]
+    volumes:
+      - logs:/logs:ro
+    networks: [labnet]
+    restart: unless-stopped
+
+networks:
+  labnet:
+    driver: bridge
+
+volumes:
+  logs:
